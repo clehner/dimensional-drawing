@@ -1,0 +1,285 @@
+body {
+	margin: 0;
+	padding: 0;
+	background-color: black;
+	font: 12pt Helvetica, sans-serif;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+}
+
+#viewer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	z-index: 2;
+	background-color: white;
+	overflow: hidden;
+}
+
+#viewer .plane {
+	position: absolute;
+	z-index: 3;
+}
+
+/* Cursors */
+
+#cursor-circle {
+	position: absolute;
+	z-index: 5;
+}
+
+.cursor-scroll {
+	cursor: -webkit-grab;
+	cursor: -moz-grab;
+	cursor: -ms-grab;
+	cursor: -o-grab;
+	cursor: grab;
+}
+
+.cursor-scrolling {
+	cursor: -webkit-grabbing;
+	cursor: -moz-grabbing;
+	cursor: -ms-grabbing;
+	cursor: -o-grabbing;
+	cursor: grabbing;
+}
+
+.cursor-draw {
+	cursor: url(../images/brush.gif) 3 15, crosshair;
+}
+
+.cursor-eyedropper {
+	cursor: url(../images/eyedropper.gif) 1 14, crosshair;
+}
+
+.cursor-crosshair, .cursor-eraser {
+	cursor: crosshair;
+}
+
+
+/* Header Stuff */
+
+#header {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 10;
+	border: 2px rgb(121, 12, 148);
+	background-color: rgb(245, 231, 255);
+	border-style: none solid solid none;
+}
+
+#tools {
+	float: left;
+	z-index: 15;
+}
+
+#tools a {
+	display: inline-block;
+	float: left;
+	width: 48px;
+	height: 48px;
+	cursor: pointer;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-color: #dcf;
+}
+#tools a:hover {
+	background-color: #edf;
+}
+#tools a:active {
+	background-color: #c7e;
+}
+#tools a.active {
+	background-color: #c8f;
+}
+
+#scroll-tool {
+	background-image: url(../images/hand-big.gif);
+}
+#draw-tool {
+	background-image: url(../images/brush-big.gif);
+}
+#line-tool {
+	background-image: url(../images/ruler-big.png);
+}
+#curve-tool {
+	background-image: url(../images/compass-big.png);
+}
+#erase-tool {
+	background-image: url(../images/eraser-big.gif);
+}
+#eyedropper-tool {
+	background-image: url(../images/eyedropper-big.gif);
+}
+
+#coords {
+	float: left;
+	display: block;
+	padding: 0 8px;
+	font-size: 14px;
+	line-height: 15px;
+	z-index: 15;
+	min-width: 32;
+}
+
+.hidden {
+	display: none;
+}
+
+/* Intro text */
+
+#intro {
+	float: left;
+	height: 48px;
+	width: auto;
+	border-left: 2px solid rgb(175, 138, 184);
+	padding: 0 8px;
+}
+
+#intro h3 {
+	font-size: 1.1em;
+	margin: 0;
+}
+
+#intro-close {
+	float: right;
+}
+
+/* Color selector */
+
+#color-tools {
+	float: left;
+	  -webkit-transition-duration: 0.3s;
+	     -moz-transition-duration: 0.3s;
+	       -o-transition-duration: 0.3s;
+	          transition-duration: 0.3s;
+	z-index: 14;
+	width: 65px;
+	overflow: hidden;
+	border-left: 2px solid rgb(175, 138, 184);
+}
+
+#color-tools.hidden {
+	width: 1px;
+	border-width: 0px;
+	display: block;
+}
+
+#color-tools.semi-hidden #color-selection {
+	width: 1px;
+}
+
+#color-selection {
+	float: left;
+	margin: 9px;
+	border: 1px solid black;
+	width: 45px;
+	height: 28px;
+	cursor: pointer;
+	background-image: url(../images/transparent.png);
+	background-color: white;
+}
+#color-selection-inner {
+	height: 100%;
+	background-color: black;
+}
+
+/* Color Picker */
+
+#color-picker {
+	position: absolute;
+	width: 188px;
+	top: 50px;
+	padding: 8px;
+	border: 1px solid #888;
+	margin: -1px;
+	background-color: rgb(255, 244, 187);
+}
+
+#hue-square {
+	width: 150px;
+	margin: 0 8px 8px 0;
+	background-color: red;
+}
+
+#hue-square, #hue-slider {
+	position: relative;
+	float: left;
+	height: 150px;
+}
+
+#sat-val-canvas {
+	height: 100%;
+	width: 100%;
+}
+
+.x-cursor, .y-cursor, .xy-cursor {
+	position: absolute;
+	top: 0;
+	left: 0;
+	border: 1px solid black;
+}
+
+.xy-cursor {
+	width: 3px;
+	height: 3px;
+	margin: -2px 0 0 -3px;
+	left: 0px;
+	top: 100%;
+	background-color: black;
+	border: 1px solid white;
+	border-radius: 2px;
+}
+
+.x-cursor {
+	width: 2px;
+	height: 100%;
+	margin: -1px -2px;
+}
+
+.y-cursor {
+	width: 100%;
+	height: 2px;
+	margin: -2px -1px;
+}
+
+#hue-slider {
+	width: 30px;
+	background-color: white;
+}
+
+#hue-canvas {
+	width: 100%;
+	height: 100%;
+}
+
+#alpha-slider {
+	width: 150px;
+	height: 18px;
+	position: relative;
+	float: left;
+	margin-bottom: 8px;
+}
+
+#alpha-canvas {
+	float: left;
+}
+
+#size-slider {
+	float: left;
+	position: relative;
+	width: 150px;
+	height: 18px;
+}
+
+#dot-preview {
+	border: 1px solid #888;
+	float: right;
+	margin-top: 8px;
+	background-image: url(../images/transparent.png);
+	background-color: white;
+}
+

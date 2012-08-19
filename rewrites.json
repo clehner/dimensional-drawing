@@ -1,0 +1,22 @@
+[
+	{
+		"from": "tiles/*",
+		"to": "../../*"
+	},
+	{
+		"from": "tiles",
+		"to": "../../"
+	},
+	{
+		"from": "",
+		"to": "index.html"
+	},
+	{
+		"from": "favicon.ico",
+		"to": "images/favicon.ico"
+	},
+	{
+		"from": "*",
+		"to": "*"
+	}
+]

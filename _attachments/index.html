@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>3D Drawing Space</title>
+
+	<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
+	<meta name="viewport" content="width=device-width, maximum-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="apple-touch-icon-72.png">
+
+	<link rel="stylesheet" type="text/css" href="style/main.css">
+	<script src="script/couchdb.js"></script>
+	<script src="script/utils.js"></script>
+	<script src="script/tools.js"></script>
+	<script src="script/app.js"></script>
+</head>
+<body>
+<div id="header">
+	<div id="tools">
+		<a id="scroll-tool" title="Scroll"></a>
+		<a id="draw-tool" title="Draw"></a>
+		<!--
+		<a id="line-tool" title="Line"></a>
+		<a id="curve-tool" title="Curve"></a>
+		-->
+		<a id="erase-tool" title="Eraser"></a>
+		<a id="eyedropper-tool" title="Eyedropper"></a>
+	</div>
+	<a id="coords" href="">
+		x=<span id="x-coord">0</span><br>
+		y=<span id="y-coord">0</span><br>
+		z=<span id="z-coord">0</span>
+	</a>
+	<div id="color-tools" class="hidden">
+		<div id="color-selection" title="Color Selection">
+			<div id="color-selection-inner"></div>
+		</div>
+	</div>
+
+	<div id="intro">
+		<a id="intro-close" href="#">&larr;</a>
+		<h3>3D Drawing Space</h3>
+		Scroll to move in and out.
+		<!--Or, use arrow keys and shift/enter to move.-->
+	</div>
+
+	<div id="color-picker" class="hidden">
+		<div id="hue-square">
+			<canvas id="sat-val-canvas" width="150" height="150"></canvas>
+			<div id="sat-val-cursor" class="xy-cursor"></div>
+		</div>
+		<div id="hue-slider">
+			<canvas id="hue-canvas" width="1" height="150"></canvas>
+			<div id="hue-cursor" class="y-cursor"></div>
+		</div>
+		<canvas id="dot-preview" width="28" height="48"></canvas>
+		<div id="alpha-slider">
+			<canvas id="alpha-canvas" width="150" height="18"></canvas>
+			<div id="alpha-cursor" class="x-cursor"></div>
+		</div>
+		<div id="size-slider">
+			<canvas id="size-canvas" width="150" height="18"></canvas>
+			<div id="size-cursor" class="x-cursor"></div>
+		</div>
+	</div>
+</div>
+
+<div id="viewer">
+	<canvas id="cursor-circle" width="20" height="20"></canvas>
+</div>
+
+<script>init()</script>
+</body>
+</html>
