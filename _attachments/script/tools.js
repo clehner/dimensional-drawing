@@ -198,9 +198,10 @@ function ToolSet(app, mouseController, container) {
 			onDrag: function (e) {
 				var pixel = this.plane.getPixel(e._x, e._y);
 				var rgba = Array.prototype.slice.call(pixel.data);
-				if (rgba[3] == 0) {
-					rgba = [255, 255, 255, 1];
-				}
+				if (rgba[3] == 0)
+					rgba = [255, 255, 255, 0];
+				else
+					rgba[3] /= 255;
 				colorPicker.setColor(rgba);
 			}
 		}
@@ -270,7 +271,7 @@ function ColorPicker(el) {
 	var self = this,
 		hue = 0,
 		sat = 0,
-		light = 0,
+		val = 0,
 		alpha = 1,
 		size = 4,
 		storageKey = "colorpicker",
@@ -334,17 +335,18 @@ function ColorPicker(el) {
 		return [r * 255, g * 255, b * 255];
 	}
 
-	function rgbToHsl(r, g, b) {
-		r /= 255, g /= 255, b /= 255;
+	function rgbToHsv(r, g, b) {
+		r = r/255, g = g/255, b = b/255;
 		var max = Math.max(r, g, b), min = Math.min(r, g, b);
-		var h, s, l = (max + min) / 2;
+		var h, s, v = max;
+
+		var d = max - min;
+		s = max == 0 ? 0 : d / max;
 
 		if (max == min) {
-			h = s = 0; // achromatic
+			h = 0; // achromatic
 		} else {
-			var d = max - min;
-			s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-			switch(max){
+			switch(max) {
 				case r: h = (g - b) / d + (g < b ? 6 : 0); break;
 				case g: h = (b - r) / d + 2; break;
 				case b: h = (r - g) / d + 4; break;
@@ -352,7 +354,7 @@ function ColorPicker(el) {
 			h /= 6;
 		}
 
-		return [h, s, l];
+		return [h, s, v];
 	}
 
 	// Prepare canvases
@@ -403,7 +405,7 @@ function ColorPicker(el) {
 	sizeCtx.strokeStyle = "white";
 
 	function update() {
-		var rgb = hsvToRgb(hue, sat, light).map(Math.round);
+		var rgb = hsvToRgb(hue, sat, val).map(Math.round);
 		var rgba = "rgba(" + rgb.join(", ") + ", " + alpha + ")";
 		rgb = "rgb(" + rgb.join(", ") + ")";
 
@@ -422,7 +424,7 @@ function ColorPicker(el) {
 			size/2, 0, 2*Math.PI, false);
 		dotPreviewCtx.fill();
 
-		var colorStr = [hue, sat, light, alpha, size].join(",");
+		var colorStr = [hue, sat, val, alpha, size].join(",");
 		if (window.localStorage) localStorage[storageKey] = colorStr;
 		if (window.sessionStorage) sessionStorage[storageKey] = colorStr;
 
@@ -431,7 +433,7 @@ function ColorPicker(el) {
 
 	function updateSatVal() {
 		satValCursor.style.left = (100 * sat).toFixed(1) + "%";
-		satValCursor.style.top = 100 - (100 * light).toFixed(1) + "%";
+		satValCursor.style.top = 100 - (100 * val).toFixed(1) + "%";
 	}
 
 	function updateHue() {
@@ -472,7 +474,7 @@ function ColorPicker(el) {
 
 	new DragController(hueSquare, {onDragStart: drag, onDrag: function (e) {
 		sat = Math.max(0, Math.min(1, e._x / satValWidth)),
-		light = 1 - Math.max(0, Math.min(1, e._y / satValHeight)),
+		val = 1 - Math.max(0, Math.min(1, e._y / satValHeight)),
 		updateSatVal();
 		update();
 	}});
@@ -502,7 +504,7 @@ function ColorPicker(el) {
 		var hsva = colorStr.split(",");
 		hue = +hsva[0] || 0;
 		sat = +hsva[1] || 0;
-		light = +hsva[2] || 0;
+		val = +hsva[2] || 0;
 		alpha = +hsva[3] || 1;
 		size = +hsva[4] || size;
 		updateAll();
@@ -524,10 +526,10 @@ function ColorPicker(el) {
 	};
 	this.onChange = null;
 	this.setColor = function (rgba) {
-		var hsl = rgbToHsl(rgba[0], rgba[1], rgba[2]);
+		var hsl = rgbToHsv(rgba[0], rgba[1], rgba[2]);
 		hue = hsl[0];
 		sat = hsl[1];
-		light = hsl[2];
+		val = hsl[2];
 		alpha = rgba[3];
 		updateAll();
 	};
