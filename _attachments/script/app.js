@@ -457,7 +457,7 @@ function App() {
 
 var app = this,
 	viewerEl,
-	zRadius = 2,
+	zRadius = 3,
 	planes = [],
 	loc = {x: NaN, y: NaN, z: NaN},
 	zoomStep = 1.04,
@@ -551,12 +551,12 @@ function updatePlanes() {
 	var plane;
 	for (var i = 0; i < planes.length; i++) {
 		plane = planes[i];
-		if (plane && (plane.z < loc.z - zRadius || plane.z > loc.z + zRadius)) {
+		if (plane && (plane.z < loc.z - zRadius || plane.z > loc.z)) {
 			plane.hide();
 		}
 	}
 	// update and show visible planes
-	for (var z = -zRadius; z <= zRadius; z++) {
+	for (var z = -zRadius; z <= 0; z++) {
 		plane = getPlane(loc.z + z);
 		planes[zRadius + z] = plane;
 		if (plane) {
