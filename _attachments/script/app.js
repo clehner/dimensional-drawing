@@ -332,6 +332,8 @@ Plane.prototype = {
 	ctx: null,
 	tileWidth: 256,
 	tileHeight: 256,
+	tileWidthZoomed: NaN,
+	tileHeightZoomed: NaN,
 	allTiles: null,
 	visibleTiles: null,
 
@@ -352,6 +354,8 @@ Plane.prototype = {
 
 	setZoom: function (zoom) {
 		this.zoom = zoom;
+		this.tileWidthZoomed = Math.ceil(this.tileWidth * zoom);
+		this.tileHeightZoomed = Math.ceil(this.tileHeight * zoom);
 		this.updateBuffer();
 		//this.updateOffset();
 		this.resize();
@@ -420,10 +424,10 @@ Plane.prototype = {
 			this.app.tileMaps.loadForTile(tile, redraw);
 			//return;
 		}
-		var x = Math.ceil((this.x + tile.x * this.tileWidth) * this.zoom + this.bufferX),
-			y = Math.ceil((this.y + tile.y * this.tileHeight) * this.zoom + this.bufferY),
-			w = Math.ceil(this.tileWidth * this.zoom),
-			h = Math.ceil(this.tileHeight * this.zoom);
+		var w = this.tileWidthZoomed,
+			h = this.tileHeightZoomed,
+			x = Math.ceil(this.x * this.zoom + tile.x * w + this.bufferX),
+			y = Math.ceil(this.y * this.zoom + tile.y * h + this.bufferY);
 		tile.drawTo(this.ctx, x, y, w, h, redraw);
 	},
 
