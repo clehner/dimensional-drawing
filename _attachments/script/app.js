@@ -10,6 +10,8 @@ Tile.prototype = {
 	z: NaN,
 
 	img: null,
+	temp: null,
+	tempCtx: null,
 	queue: null,
 	queueCtx: null,
 	eraseQueue: null,
@@ -23,6 +25,7 @@ Tile.prototype = {
 	hasEdits: false,
 	savingEdits: false,
 	savedEdits: false,
+	touched: false,
 
 	unloadedCanvas: (function () {
 		var canvas = Canvases.get(1, 1);
@@ -121,6 +124,38 @@ Tile.prototype = {
 		var dataURL = merged.toDataURL("image/png");
 		var imageData = dataURL.substr('data:image/png;base64,'.length);
 		return imageData;
+	},
+
+	getTempContext: function () {
+		if (!this.tempCtx) {
+			var plane = this.plane;
+			var w = plane.tileWidth;
+			var h = plane.tileHeight;
+			var left = this.x * w + plane.x;
+			var top = this.y * h + plane.y;
+
+			this.temp = Canvases.get(w, h);
+			this.tempCtx = this.temp.getContext("2d");
+			this.tempCtx.translate(-left, -top);
+
+			this.temp.className = "temp-canvas";
+			var s = this.temp.style;
+			s.left = left + "px";
+			s.top = top + "px";
+
+			if (!plane.container) {
+				throw new Error("No container for temp canvas");
+			}
+			plane.container.appendChild(this.temp);
+		}
+		return this.tempCtx;
+	},
+
+	removeTempContext: function () {
+		if (this.tempCtx) {
+			this.temp.parentNode.removeChild(this.temp);
+			delete this.tempCtx, this.tmp;
+		}
 	},
 
 	getQueueContext: function () {
@@ -487,19 +522,20 @@ var app = this,
 	mouseY = 0,
 	coordsLink,
 	savingEdits = 0,
+	dev = (location.pathname.indexOf("/_attachments/") != -1),
 	undefined;
 
 Couch.urlPrefix = ".";
 
 // for dev setup
-if (location.pathname.indexOf("/_attachments/") != -1) {
+if (dev) {
 	Couch.urlPrefix = "/couchdb/space/_design/space/_rewrite";
 }
 
 var db = Couch.db("tiles");
 
 // Error logging
-window.onerror = function (message, url, line) {
+if (!dev) window.onerror = function (message, url, line) {
 	db.saveDoc({
 		type: "error",
 		time: +new Date(),

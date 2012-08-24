@@ -130,6 +130,7 @@ function DragController(element, options) {
 	function onMouseUp(e) {
 		document.removeEventListener("mouseup", onMouseUp, false);
 		document.removeEventListener("mousemove", onMouseMove, true);
+		correctEvent(e);
 		onDragEnd && onDragEnd.call(context, e);
 	}
 
@@ -138,6 +139,7 @@ function DragController(element, options) {
 		document.removeEventListener("touchend", onMouseUp, false);
 		document.removeEventListener("touchcancel", onMouseUp, false);
 		document.removeEventListener("touchmove", onMouseMove, true);
+		correctEvent(e);
 		onDragEnd && onDragEnd.call(context, e);
 	}
 

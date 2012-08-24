@@ -23,6 +23,11 @@ body {
 	z-index: 3;
 }
 
+#viewer .temp-canvas {
+	position: absolute;
+	z-index: 4;
+}
+
 /* Cursors */
 
 #cursor-circle {

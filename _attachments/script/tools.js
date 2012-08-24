@@ -6,14 +6,16 @@ function ToolSet(app, mouseController, container) {
 		colorSelection = document.getElementById("color-selection-inner"),
 		cursorCircle = document.getElementById("cursor-circle"),
 		brushColor = "black",
+		brushOpaqueColor = "black";
 		brushAlpha = 1,
 		brushSize = 4;
 
-	colorPicker.onChange = function (color, alpha, size) {
-		brushColor = color;
+	colorPicker.onChange = function (rgba, rgb, alpha, size) {
+		brushColor = rgba;
+		brushOpaqueColor = rgb;
 		brushAlpha = alpha;
 		brushSize = size;
-		colorSelection.style.backgroundColor = color;
+		colorSelection.style.backgroundColor = rgba;
 	};
 
 	colorSelection.addEventListener("click", function (e) {
@@ -21,7 +23,7 @@ function ToolSet(app, mouseController, container) {
 	}, false);
 
 	// execute a function for each tile in a rectangle on the current plane
-	function inRect(x0, y0, x1, y1, padding, cb) {
+	function inRect(x0, y0, x1, y1, padding, cb, context) {
 		var x, y, w, h;
 		if (x0 < x1) {
 			x = x0;
@@ -41,11 +43,31 @@ function ToolSet(app, mouseController, container) {
 		var tiles = plane.getTilesInRect(
 			x - plane.x - padding, y - plane.y - padding,
 			w + 2*padding, h + 2*padding);
+		//if (tiles.length == 2) debugger;
 		tiles.forEach(function (tile) {
 			// pass offset of tile from viewer
-			cb(tile, tile.x * plane.tileWidth + plane.x,
+			cb.call(context, tile, tile.x * plane.tileWidth + plane.x,
 				tile.y * plane.tileHeight + plane.y);
 		});
+	}
+
+	// copy temp canvases to queue canvases and queue tile saves
+	// i.e. stage the current brush strokes for saving
+	function copySaveTiles(touchedTiles, blending) {
+		touchedTiles.forEach(function (tile) {
+			var tempCtx = tile.getTempContext();
+			var tempCanvas = tempCtx.canvas;
+			var ctx = tile.getQueueContext();
+			ctx.globalAlpha = brushAlpha;
+			if (blending) ctx.globalCompositeOperation = blending;
+			ctx.drawImage(tempCanvas, 0, 0);
+			if (blending) ctx.globalCompositeOperation = "source-over";
+			tile.removeTempContext(tempCtx);
+			app.queueTileSave(tile);
+			tile.touched = false;
+			tile.draw();
+		});
+		touchedTiles.length = 0;
 	}
 
 	var tools = {
@@ -73,39 +95,78 @@ function ToolSet(app, mouseController, container) {
 		},
 
 		draw: {
+			touchedTiles: [],
 			onActivate: function () {
 				viewerEl.className = "cursor-draw";
 				colorTools.className = "";
 				cursorCircle.className = "";
 			},
 			onDragStart: function (e) {
-				this.x = e._x - .01;
-				this.y = e._y - .01;
+				this.x = this.x0 = this.x1 = this.x2 = e._x - .01;
+				this.y = this.y0 = this.y1 = this.y2 = e._y - .01;
 				this.onDrag(e);
 			},
 			onDrag: function (e) {
-				var prevX = this.x,
-					prevY = this.y,
-					x = this.x = e._x,
-					y = this.y = e._y;
+				this.x2 = this.x1;
+				this.y2 = this.y1;
+				this.x1 = this.x0;
+				this.y1 = this.y0;
+				this.x0 = e._x;
+				this.y0 = e._y;
+				this.xx = this.x;
+				this.yy = this.y;
+				this.x = (this.x1 + this.x0) / 2;
+				this.y = (this.y1 + this.y0) / 2;
 
-				inRect(x, y, prevX, prevY, brushSize,
-					function (tile, offsetX, offsetY) {
+				inRect(this.x0, this.y0, this.x2, this.y2,
+					brushSize, this.onDragInRect, this);
+			},
+			onDragInRect: function (tile, offsetX, offsetY) {
+				if (!tile.isLoaded) return;
 
-					if (!tile.isLoaded) return;
+				var ctx = tile.getTempContext();
+				ctx.canvas.style.opacity = brushAlpha;
+				ctx.strokeStyle = brushOpaqueColor;
+				ctx.lineWidth = brushSize;
+				ctx.lineCap = "round";
+				ctx.beginPath();
+				ctx.moveTo(this.xx, this.yy);
+				ctx.quadraticCurveTo(this.x1, this.y1, this.x, this.y);
+				ctx.stroke();
 
-					var ctx = tile.getQueueContext();
-					ctx.strokeStyle = brushColor;
-					ctx.lineWidth = brushSize;
-					ctx.lineCap = "round";
-					ctx.beginPath();
-					ctx.moveTo(prevX - offsetX - .5, prevY - offsetY - .5);
-					ctx.lineTo(x - offsetX - .5, y - offsetY - .5);
-					ctx.stroke();
-					tile.draw();
+				if (!tile.touched) {
+					this.touchedTiles.push(tile);
+					tile.touched = true;
+				}
+			},
+			onDragInRectLast: function (tile, offsetX, offsetY) {
+				if (!tile.isLoaded) return;
 
-					app.queueTileSave(tile);
-				});
+				var ctx = tile.getTempContext();
+				ctx.canvas.style.opacity = brushAlpha;
+				ctx.strokeStyle = brushOpaqueColor;
+				ctx.lineWidth = brushSize;
+				ctx.lineCap = "round";
+				ctx.beginPath();
+				ctx.moveTo(this.x, this.y);
+				ctx.quadraticCurveTo(this.x1, this.y1, this.x0, this.y0);
+				ctx.stroke();
+
+				if (!tile.touched) {
+					this.touchedTiles.push(tile);
+					tile.touched = true;
+				}
+			},
+			onDragEnd: function (e) {
+				this.x2 = this.x1;
+				this.y2 = this.y1;
+				this.x1 = this.x0;
+				this.y1 = this.y0;
+				this.x0 = e._x;
+				this.y0 = e._y;
+				inRect(this.x0, this.y0, this.x2, this.y2,
+					brushSize, this.onDragInRectLast, this);
+				copySaveTiles(this.touchedTiles);
 			}
 		},
 
@@ -158,6 +219,7 @@ function ToolSet(app, mouseController, container) {
 					function (tile, offsetX, offsetY) {
 
 					if (!tile.isLoaded || !tile.exists) return;
+
 					// erase in the erase layer (to erase the underlying img)
 					var ctx = tile.getEraseQueueContext();
 					ctx.lineWidth = brushSize;
@@ -428,7 +490,7 @@ function ColorPicker(el) {
 		if (window.localStorage) localStorage[storageKey] = colorStr;
 		if (window.sessionStorage) sessionStorage[storageKey] = colorStr;
 
-		if (self.onChange) self.onChange(rgba, alpha, size);
+		if (self.onChange) self.onChange(rgba, rgb, alpha, size);
 	}
 
 	function updateSatVal() {
