@@ -382,6 +382,7 @@ var Couch = (function() {
           }
           // when there is a change, call any listeners, then check for another change
           options.success = function(resp) {
+            if (!resp) return options.error();
             timeout = 100;
             if (active) {
               since = resp.last_seq;
