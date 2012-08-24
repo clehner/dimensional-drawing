@@ -15,6 +15,7 @@ Tile.prototype = {
 	eraseQueue: null,
 	eraseQueueCtx: null,
 	mergedCanvas: null,
+	onImgLoad: null,
 
 	exists: null,
 	isLoaded: false,
@@ -35,6 +36,10 @@ Tile.prototype = {
 		return this.z + "_" + this.y + "_" + this.x;
 	},
 
+	addOnLoad: function (cb) {
+		(this.onImgLoad || (this.onImgLoad = [])).push(cb);
+	},
+
 	loadImage: function (noCache) {
 		var self = this;
 		var img = new Image();
@@ -44,6 +49,10 @@ Tile.prototype = {
 			self.isLoading = false;
 			self.clearSavedEdits();
 			self.draw();
+			if (self.onImgLoad) {
+				self.onImgLoad.forEach(function (cb) { cb() });
+				self.onImgLoad = null;
+			}
 		};
 		img.onerror = function () {
 			self.exists = false;
@@ -154,7 +163,6 @@ Tile.prototype = {
 
 	save: function (db) {
 		var self = this;
-		this.hasEdits = false;
 		var app = this.plane.app;
 		function onError(status, error, reason) {
 			if (error == "conflict") {
@@ -165,7 +173,14 @@ Tile.prototype = {
 				throw new Error("Error saving edits. " + error + ", " + reason);
 			}
 		}
-		this.getDoc(db, function (doc) {
+		this.getDoc(db, function save2(doc) {
+			if (!self.isLoaded) {
+				// defer save
+				self.addOnLoad(save2);
+				return;
+			}
+
+			this.hasEdits = false;
 			doc.modified_at = +new Date();
 			doc._attachments = {
 				"tile.png": {
@@ -357,7 +372,7 @@ Plane.prototype = {
 		this.tileWidthZoomed = Math.ceil(this.tileWidth * zoom);
 		this.tileHeightZoomed = Math.ceil(this.tileHeight * zoom);
 		this.updateBuffer();
-		//this.updateOffset();
+		this.updateOffset();
 		this.resize();
 	},
 
@@ -370,7 +385,9 @@ Plane.prototype = {
 	setMouse: function (x, y) {
 		this.mouseX = x;
 		this.mouseY = y;
-		this.updateOffset();
+		// zoom=1 layer is stationary
+		if (this.zoom != 1)
+			this.updateOffset();
 	},
 
 	setAlpha: function (a) {
@@ -724,7 +741,7 @@ window.addEventListener("hashchange", function () {
 // Saving Edits
 
 var saveTimer;
-var saveTime = 4000; // delay after drawing stops to save edits
+var saveTime = 3000; // delay after drawing stops to save edits
 var saveQueue = []; // tiles with edits, awaiting save
 
 function saveEdits() {
