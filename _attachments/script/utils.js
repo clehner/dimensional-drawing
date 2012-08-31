@@ -105,6 +105,7 @@ function DragController(element, options) {
 	var context = options;
 	options.onActivate && options.onActivate();
 
+	var lastX, lastY;
 	var offsetX, offsetY;
 	function calculateOffsets() {
 		var x = 0, y = 0;
@@ -118,8 +119,8 @@ function DragController(element, options) {
 
 	// Add coords relative to element
 	function correctEvent(e) {
-		e._x = e.pageX - offsetX;
-		e._y = e.pageY - offsetY;
+		lastX = e._x = e.pageX - offsetX;
+		lastY = e._y = e.pageY - offsetY;
 	}
 
 	function onMouseMove(e) {
@@ -136,10 +137,11 @@ function DragController(element, options) {
 
 	function onTouchEnd(e) {
 		if (e.touches.length > 0) return;
-		document.removeEventListener("touchend", onMouseUp, false);
-		document.removeEventListener("touchcancel", onMouseUp, false);
+		document.removeEventListener("touchend", onTouchEnd, false);
+		document.removeEventListener("touchcancel", onTouchEnd, false);
 		document.removeEventListener("touchmove", onMouseMove, true);
-		correctEvent(e);
+		e._x = lastX;
+		e._y = lastY;
 		onDragEnd && onDragEnd.call(context, e);
 	}
 

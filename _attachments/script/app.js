@@ -18,6 +18,7 @@ Tile.prototype = {
 	eraseQueueCtx: null,
 	mergedCanvas: null,
 	onImgLoad: null,
+	onSaved: null,
 
 	exists: null,
 	isLoaded: false,
@@ -26,6 +27,7 @@ Tile.prototype = {
 	savingEdits: false,
 	savedEdits: false,
 	touched: false,
+	saving: false,
 
 	unloadedCanvas: (function () {
 		var canvas = Canvases.get(1, 1);
@@ -43,10 +45,14 @@ Tile.prototype = {
 		(this.onImgLoad || (this.onImgLoad = [])).push(cb);
 	},
 
+	addOnSaved: function (cb) {
+		(this.onSaved || (this.onSaved = [])).push(cb);
+	},
+
 	loadImage: function (noCache) {
 		var self = this;
 		var img = new Image();
-		img.onload = function () {
+		img.onload = function (e) {
 			self.img = img;
 			self.isLoaded = true;
 			self.isLoading = false;
@@ -54,10 +60,11 @@ Tile.prototype = {
 			self.draw();
 			if (self.onImgLoad) {
 				self.onImgLoad.forEach(function (cb) { cb() });
-				self.onImgLoad = null;
+				self.onImgLoad.length = 0;
 			}
 		};
 		img.onerror = function () {
+			// todo: do something better here.
 			self.exists = false;
 			img.onload();
 			delete self.img;
@@ -81,7 +88,7 @@ Tile.prototype = {
 			}
 			return;
 		}
-		if (this.img && this.isLoaded) {
+		if (this.img && this.isLoaded && this.exists) {
 			dest.drawImage(this.img, x, y, w, h);
 		}
 		if (this.eraseQueue) {
@@ -198,8 +205,18 @@ Tile.prototype = {
 
 	save: function (db) {
 		var self = this;
+		if (this.saving) {
+			console.log("defering saving");
+			this.addOnSaved(function () {
+				console.log("defer complete");
+				self.save(db);
+			});
+			return;
+		}
+		this.saving = true;
 		var app = this.plane.app;
 		function onError(status, error, reason) {
+			this.saving = false;
 			if (error == "conflict") {
 				// get updated doc and try again
 				self.save(db);
@@ -211,7 +228,7 @@ Tile.prototype = {
 		this.getDoc(db, function save2(doc) {
 			if (!self.isLoaded) {
 				// defer save
-				self.addOnLoad(save2);
+				self.addOnLoad(function () { save2(doc) });
 				return;
 			}
 
@@ -227,6 +244,11 @@ Tile.prototype = {
 			db.saveDoc(doc, {
 				error: onError,
 				success: function () {
+					self.saving = false;
+					if (self.onSaved) {
+						self.onSaved.forEach(function (cb) { cb() });
+						self.onSaved.length = 0;
+					}
 					app.onSaveEnd(self);
 					self.hasEdits = false;
 					self.savingEdits = false;
@@ -404,8 +426,8 @@ Plane.prototype = {
 
 	setZoom: function (zoom) {
 		this.zoom = zoom;
-		this.tileWidthZoomed = Math.ceil(this.tileWidth * zoom);
-		this.tileHeightZoomed = Math.ceil(this.tileHeight * zoom);
+		this.tileWidthZoomed = this.tileWidth * zoom;
+		this.tileHeightZoomed = this.tileHeight * zoom;
 		this.updateBuffer();
 		this.updateOffset();
 		this.resize();
@@ -478,9 +500,16 @@ Plane.prototype = {
 		}
 		var w = this.tileWidthZoomed,
 			h = this.tileHeightZoomed,
-			x = Math.ceil(this.x * this.zoom + tile.x * w + this.bufferX),
-			y = Math.ceil(this.y * this.zoom + tile.y * h + this.bufferY);
-		tile.drawTo(this.ctx, x, y, w, h, redraw);
+			x2 = this.x * this.zoom,
+			y2 = this.y * this.zoom,
+			x = Math.floor(x2 + tile.x * w) + this.bufferX,
+			y = Math.floor(y2 + tile.y * h) + this.bufferY;
+
+		tile.drawTo(this.ctx,
+			x, y,
+			Math.floor((1+tile.x)*w + x2) - Math.floor(tile.x*w + x2),
+			Math.floor((1+tile.y)*h + y2) - Math.floor(tile.y*h + y2),
+			redraw);
 	},
 
 	getTilesInRect: function (x0, y0, w, h) {
@@ -517,7 +546,7 @@ var app = this,
 	planes = [],
 	loc = {x: NaN, y: NaN, z: NaN},
 	zoomStep = 1.04,
-	alphaStep = 1.5,
+	alphaStep = 1.33,
 	mouseX = 0,
 	mouseY = 0,
 	coordsLink,
@@ -541,7 +570,10 @@ if (!dev) window.onerror = function (message, url, line) {
 		time: +new Date(),
 		message: message,
 		url: url,
+		browser: navigator.appVersion,
 		line: line
+	}, {
+		error: function () {}
 	});
 };
 
@@ -593,6 +625,9 @@ db.info({
 		setTimeout(function () {
 			listenForChanges(since);
 		}, 4000);
+	},
+	error: function (status, error, reason) {
+		throw new Error("Error getting db info. " + error);
 	}
 });
 
@@ -632,7 +667,8 @@ var coordNodes = {
 	y: document.getElementById("y-coord").firstChild,
 	z: document.getElementById("z-coord").firstChild
 };
-function setPosition(x, y, z) {
+
+function setPosition(x, y, z, dragged) {
 	var prevZ = loc.z;
 	loc.x = x;
 	loc.y = y;
@@ -652,6 +688,13 @@ function setPosition(x, y, z) {
 	var posStr = x + "," + y + "," + z;
 	if (window.sessionStorage) sessionStorage["space-position"] = posStr;
 	if (window.localStorage) localStorage["space-position"] = posStr;
+
+	// remove the hash when the user moves the page,
+	// so that if the page is refreshed it won't go back to
+	// the location in the hash
+	if (dragged && location.hash) {
+		location.hash = "";
+	}
 }
 
 function setZRadius(r) {
@@ -753,9 +796,6 @@ var posStr = location.hash.substr(1) ||
 	(window.localStorage && localStorage["space-position"]);
 var s = posStr ? posStr.split(",") : '000';
 setPosition(+s[0] || 0, +s[1] || 0, +s[2] || 0);
-if (location.hash) {
-	location.replace(location.href.split("#")[0]);
-}
 
 var introEl = document.getElementById("intro");
 if (window.localStorage && localStorage["space-intro"] == "hide") {

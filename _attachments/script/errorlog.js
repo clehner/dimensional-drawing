@@ -117,6 +117,13 @@ function displayError(doc, top) {
 	source.appendChild(document.createTextNode("#" + doc.line));
 	li.appendChild(source);
 
+	if (doc.browser) {
+		var browser = document.createElement("div");
+		browser.className = "browser";
+		browser.appendChild(document.createTextNode(doc.browser));
+		li.appendChild(browser);
+	}
+
 	if (top && errorsList.firstChild)
 		errorsList.insertBefore(li, errorsList.firstChild);
 	else

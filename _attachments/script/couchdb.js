@@ -407,16 +407,24 @@ var Couch = (function() {
               "Error connecting to "+db.uri+"/_changes."
             );
           }
+		  function getSince() {
+            db.info({
+              success: function(info) {
+                since = info.update_seq;
+                getChangesSince();
+              },
+              error: function() {
+                timeout *= 2;
+                setTimeout(getSince, timeout);
+              }
+            });
+          }
           // start the first request
           if (since) {
             getChangesSince();
           } else {
-            db.info({
-              success : function(info) {
-                since = info.update_seq;
-                getChangesSince();
-              }
-            });
+			timeout = 100;
+            getSince();
           }
           return promise;
         },

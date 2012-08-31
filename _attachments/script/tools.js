@@ -87,7 +87,7 @@ function ToolSet(app, mouseController, container) {
 				app.setPosition(
 					this.startPos.x + e._x - this.startMouse.x,
 					this.startPos.y + e._y - this.startMouse.y,
-					loc.z);
+					loc.z, true);
 			},
 			onDragEnd: function (e) {
 				viewerEl.className = "cursor-scroll";
@@ -486,7 +486,9 @@ function ColorPicker(el) {
 			size/2, 0, 2*Math.PI, false);
 		dotPreviewCtx.fill();
 
-		var colorStr = [hue, sat, val, alpha, size].join(",");
+		var colorStr = [hue, sat, val, alpha, size].map(function (n) {
+			return Math.round(n*1e5)/1e5;
+		}).join(",");
 		if (window.localStorage) localStorage[storageKey] = colorStr;
 		if (window.sessionStorage) sessionStorage[storageKey] = colorStr;
 
@@ -560,7 +562,8 @@ function ColorPicker(el) {
 		update();
 	}});
 
-	var colorStr = (window.sessionStorage && sessionStorage[storageKey]) ||
+	var colorStr =
+		(window.sessionStorage && sessionStorage[storageKey]) ||
 		(window.localStorage && localStorage[storageKey]);
 	if (colorStr) {
 		var hsva = colorStr.split(",");
@@ -571,6 +574,8 @@ function ColorPicker(el) {
 		size = +hsva[4] || size;
 		updateAll();
 		setTimeout(update, 1);
+	} else {
+		updateAll();
 	}
 
 	var visible = false;
