@@ -486,7 +486,8 @@ Plane.prototype = {
 		var visibleTiles = this.visibleTiles = this.getTilesInRect(
 			-this.x - this.bufferX,
 			-this.y - this.bufferY,
-			this.width * zoom, this.height * zoom);
+			this.width * zoom,
+			this.height * zoom);
 		// draw the tiles.
 		for (var i = 0; i < visibleTiles.length; i++) {
 			this.drawTile(visibleTiles[i], false);
@@ -718,8 +719,6 @@ var cursorCircle = document.getElementById("cursor-circle");
 function onMouseMove(e) {
 	mouseX = e.pageX;
 	mouseY = e.pageY;
-	var width = viewerEl.clientWidth;
-	var height = viewerEl.clientHeight;
 	for (var i = 0; i < planes.length; i++) {
 		var plane = planes[i];
 		if (plane) {
@@ -744,7 +743,7 @@ function onScroll(e) {
 	var delta = e.wheelDelta || e.detail*-120;
 	if (!delta) return;
 	var z = loc.z + (delta > 0 ? 1 : -1);
-	setPosition(loc.x, loc.y, z);
+	setPosition(loc.x, loc.y, z, true);
 }
 
 viewerEl = document.getElementById("viewer");
