@@ -280,6 +280,13 @@ Tile.prototype = {
 		}
 	},
 
+	clearAllEdits: function() {
+		this.hasEdits = false;
+		this.clearEdits();
+		this.removeTempContext();
+		this.draw();
+	},
+
 	isVisible: function () {
 		return this.plane.visibleTiles &&
 			(this.plane.visibleTiles.indexOf(this) != -1);
@@ -787,6 +794,19 @@ document.body.addEventListener("touchmove", function (e) {
 	e.preventDefault();
 }, false);
 
+// Keyboard stuff
+window.addEventListener("keydown", function (e) {
+	if (e.which == 27) { // escape
+		if (pref("knows escape")) {
+			clearAllEdits();
+		} else {
+			pref("knows escape", true);
+			alert("Press escape to undo " +
+				"whatever you drew in the last few seconds");
+		}
+	}
+}, false);
+
 // Navigation
 var posStr = location.hash.substr(1) || pref("space-position");
 var s = posStr ? posStr.split(",") : '000';
@@ -829,6 +849,13 @@ function queueTileSave(tile) {
 	}
 	clearTimeout(saveTimer);
 	saveTimer = setTimeout(saveEdits, saveTime);
+}
+function clearAllEdits() {
+	saveQueue.forEach(function (tile) {
+		tile.clearAllEdits();
+		savingEdits--;
+	});
+	saveQueue.length = 0;
 }
 
 // Public API
