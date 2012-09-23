@@ -686,9 +686,7 @@ function setPosition(x, y, z, dragged) {
 	coordNodes.z.nodeValue = z;
 	coordsLink.href = getLocationURL();
 
-	var posStr = x + "," + y + "," + z;
-	if (window.sessionStorage) sessionStorage["space-position"] = posStr;
-	if (window.localStorage) localStorage["space-position"] = posStr;
+	pref("space-position", x + "," + y + "," + z);
 
 	// remove the hash when the user moves the page,
 	// so that if the page is refreshed it won't go back to
@@ -790,19 +788,17 @@ document.body.addEventListener("touchmove", function (e) {
 }, false);
 
 // Navigation
-var posStr = location.hash.substr(1) ||
-	(window.sessionStorage && sessionStorage["space-position"]) ||
-	(window.localStorage && localStorage["space-position"]);
+var posStr = location.hash.substr(1) || pref("space-position");
 var s = posStr ? posStr.split(",") : '000';
 setPosition(+s[0] || 0, +s[1] || 0, +s[2] || 0);
 
 var introEl = document.getElementById("intro");
-if (window.localStorage && localStorage["space-intro"] == "hide") {
+if (pref("space-intro") == "hide") {
 	introEl.className = "hidden";
 }
 document.getElementById("intro-close").addEventListener("click", function (e) {
 	introEl.className = "hidden";
-	if (window.localStorage) localStorage["space-intro"] = "hide";
+	pref("space-intro", "hide");
 	e.preventDefault();
 }, false);
 

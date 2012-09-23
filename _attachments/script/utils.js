@@ -174,6 +174,15 @@ function DragController(element, options) {
 	};
 }
 
+function pref(key, val) {
+	if (pref.arguments.length == 1) {
+		return (window.sessionStorage && sessionStorage[key]) ||
+			(window.localStorage && localStorage[key]);
+	} else {
+		if (window.localStorage) localStorage[key] = val;
+		if (window.sessionStorage) sessionStorage[key] = val;
+	}
+}
 // draw ellipse
 // r = radius of base circle
 // w,h = ratio of ellipse width,height to r

@@ -489,8 +489,7 @@ function ColorPicker(el) {
 		var colorStr = [hue, sat, val, alpha, size].map(function (n) {
 			return Math.round(n*1e5)/1e5;
 		}).join(",");
-		if (window.localStorage) localStorage[storageKey] = colorStr;
-		if (window.sessionStorage) sessionStorage[storageKey] = colorStr;
+		pref(storageKey, colorStr);
 
 		if (self.onChange) self.onChange(rgba, rgb, alpha, size);
 	}
@@ -562,9 +561,7 @@ function ColorPicker(el) {
 		update();
 	}});
 
-	var colorStr =
-		(window.sessionStorage && sessionStorage[storageKey]) ||
-		(window.localStorage && localStorage[storageKey]);
+	var colorStr = pref(storageKey);
 	if (colorStr) {
 		var hsva = colorStr.split(",");
 		hue = +hsva[0] || 0;
