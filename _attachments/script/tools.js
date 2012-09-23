@@ -62,7 +62,7 @@ function ToolSet(app, mouseController, container) {
 			if (blending) ctx.globalCompositeOperation = blending;
 			ctx.drawImage(tempCanvas, 0, 0);
 			if (blending) ctx.globalCompositeOperation = "source-over";
-			tile.removeTempContext(tempCtx);
+			tile.removeTempContext();
 			app.queueTileSave(tile);
 			tile.touched = false;
 			tile.draw();

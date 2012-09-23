@@ -161,6 +161,7 @@ Tile.prototype = {
 	removeTempContext: function () {
 		if (this.tempCtx) {
 			this.temp.parentNode.removeChild(this.temp);
+			Canvases.recycle(this.temp);
 			delete this.tempCtx, this.tmp;
 		}
 	},
@@ -262,12 +263,12 @@ Tile.prototype = {
 	// they can be erased from the queues.
 	clearSavedEdits: function () {
 		if (this.savedEdits) {
-			this.savedEdits = false;
 			this.clearEdits();
 		}
 	},
 
 	clearEdits: function () {
+		this.savedEdits = false;
 		if (this.queue) {
 			Canvases.recycle(this.queue);
 			delete this.queue;
@@ -435,9 +436,9 @@ Plane.prototype = {
 		this.zoom = zoom;
 		this.tileWidthZoomed = this.tileWidth * zoom;
 		this.tileHeightZoomed = this.tileHeight * zoom;
+		this.resize();
 		this.updateBuffer();
 		this.updateOffset();
-		this.resize();
 	},
 
 	setPosition: function (x, y) {
@@ -756,7 +757,8 @@ mouseX = viewerEl.clientWidth/2;
 mouseY = viewerEl.clientHeight/2;
 
 function getLocationURL() {
-	return location.origin + location.pathname + "#" +
+	var path = (location.href.match(/^.*?(?=\?|#)/) || [location.href])[0];
+	return path + "#" +
 		loc.x + "," + loc.y + "," + loc.z;
 }
 

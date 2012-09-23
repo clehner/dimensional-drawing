@@ -127,7 +127,7 @@ body {
 	font-size: 14px;
 	line-height: 15px;
 	z-index: 15;
-	min-width: 32;
+	min-width: 2em;
 }
 
 .hidden {
@@ -139,14 +139,14 @@ body {
 #intro {
 	float: left;
 	height: 48px;
-	width: auto;
 	border-left: 2px solid rgb(175, 138, 184);
 	padding: 0 8px;
+	white-space: nowrap;
 }
 
 #intro h3 {
 	font-size: 1.1em;
-	margin: 0;
+	margin: 0 1em 0 0;
 }
 
 #intro-close {
