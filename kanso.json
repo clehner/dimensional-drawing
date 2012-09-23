@@ -1,0 +1,24 @@
+{
+    "name": "space",
+    "version": "0.0.1",
+    "description": "3d drawing space.",
+    "long_description": "Dimensional Drawing is a collaborative 3D drawing space. Technically it is 2.5D, because the images are in layers.Features\n - Infinite tiled drawing canvas. Pan with click and drag.\n - Canvases layered to form the 3rd dimension. Scroll through these using a scroll wheel on a mouse or two-finger scrolling on a trackpad. On a touch sensitive device (iPad, etc) this scrolling is done by pinching, and panning is done with two-finger gestures.\n - Color picker with hue, saturation, value, opacity, and brush size.\n - Eraser tool.\n - Eyedropper tool.\n - Location hashes allow particular locations to be bookmarked.\n - Near real time updates of what other users are drawing.",
+    "url": "https://github.com/clehner/dimensional-drawing",
+    "categories": ["drawing"],
+    "icons": {
+        "16": "images/promo/app_icon_16.png",
+        "48": "images/promo/app_icon_48.png",
+        "96": "images/promo/app_icon_96.png",
+        "128": "images/promo/app_icon_128.png"
+    },
+    "promo_images": {
+        "small": "images/promo/promo_small.png"
+    },
+    "screenshots": [
+        "images/promo/screenshot1.png",
+        "images/promo/screenshot2.png"
+    ],
+    "dependencies": {
+        "traditional-couchapp": null
+    }
+}

@@ -288,3 +288,6 @@ body {
 	background-color: white;
 }
 
+#dashboard-topbar {
+    z-index: 11;
+}
