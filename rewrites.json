@@ -16,6 +16,10 @@
 		"to": "images/favicon.ico"
 	},
 	{
+		"from": "dashboard/*",
+		"to": "../../../dashboard/*"
+	},
+	{
 		"from": "*",
 		"to": "*"
 	}
