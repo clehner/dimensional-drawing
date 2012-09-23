@@ -352,7 +352,7 @@ function TileMaps(db) {
 
 		load: function () {
 			var self = this;
-			db.view("space/tile_map", {
+			db.view("dimensional-drawing/tile_map", {
 				key: this.coords,
 				group_level: 3,
 				success: function (resp) {
@@ -567,7 +567,7 @@ Couch.urlPrefix = ".";
 
 // for dev setup
 if (dev) {
-	Couch.urlPrefix = "/couchdb/space/_design/space/_rewrite";
+	Couch.urlPrefix = "/couchdb/space/_design/dimensional-drawing/_rewrite";
 }
 
 var db = Couch.db("tiles");
@@ -599,7 +599,7 @@ function listenForChanges(since) {
 	var promise = db.changes(since);
 	promise.onChange(function (resp) {
 		resp.results.forEach(function perChange(change) {
-			if (change.id == "_design/space") {
+			if (change.id == "_design/dimensional-drawing") {
 				// updated design doc
 				refreshSoon();
 			} else {
