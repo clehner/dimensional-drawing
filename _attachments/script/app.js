@@ -906,3 +906,9 @@ if (location.hostname != "localhost") {
 		s.parentNode.insertBefore(g, s);
 	}(document, 'script'));
 }
+
+function shiftHeader(){
+    $(function(){
+        $('#header').css('top', '25px');
+    })
+}
